@@ -46,7 +46,8 @@ public class EmailUtil {
             final String password = getSetting(conn, "smtp_password", ""); // SMTP key
 
             if (password == null || password.trim().isEmpty()) {
-                System.out.println("[EmailUtil] Warning: SMTP Password is not set. Skipping email dispatch.");
+                System.out.println("[EmailUtil] Warning: SMTP Password is not set. Simulating dispatch by logging notification.");
+                logNotification(conn, recipient, subject, content);
                 return;
             }
 

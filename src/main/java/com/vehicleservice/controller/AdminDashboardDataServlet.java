@@ -27,6 +27,29 @@ public class AdminDashboardDataServlet extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
+        String action = request.getParameter("action");
+        if ("getCustomerEmail".equals(action)) {
+            String customerIdStr = request.getParameter("customerId");
+            if (customerIdStr != null) {
+                try (Connection conn = DBUtil.getConnection()) {
+                    String query = "SELECT u.email FROM users u JOIN customers c ON c.user_id = u.id WHERE c.id = ?";
+                    try (PreparedStatement ps = conn.prepareStatement(query)) {
+                        ps.setInt(1, Integer.parseInt(customerIdStr));
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                out.print("{\"email\":\"" + rs.getString("email") + "\"}");
+                                return;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            out.print("{\"email\":\"\"}");
+            return;
+        }
+
         try (Connection conn = DBUtil.getConnection()) {
             int totalCustomers = getCount(conn, "SELECT COUNT(*) FROM customers");
             int totalMechanics = getCount(conn, "SELECT COUNT(*) FROM mechanics");

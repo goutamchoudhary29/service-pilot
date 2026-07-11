@@ -135,9 +135,8 @@ public class GenerateInvoiceServlet extends HttpServlet {
             
             String invoiceNumber = String.format("INV-2026-%06d", invCount + 1);
 
-            // Establish file paths
-            String appPath = request.getServletContext().getRealPath("");
-            String mediaDir = appPath + File.separator + "images" + File.separator + "invoices";
+            // Establish PERSISTENT file paths outside webapps (survives WAR redeployment)
+            String mediaDir = "C:" + File.separator + "ServicePilotData" + File.separator + "invoices";
             File dir = new File(mediaDir);
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -290,9 +289,9 @@ public class GenerateInvoiceServlet extends HttpServlet {
             insertInvPs.setDouble(5, gst);
             insertInvPs.setDouble(6, discount);
             insertInvPs.setDouble(7, grandTotal);
-            insertInvPs.setString(8, "images/invoices/" + invoiceNumber + ".pdf");
-            insertInvPs.setString(9, "images/invoices/" + invoiceNumber + "_qr.png");
-            insertInvPs.setString(10, "images/invoices/" + invoiceNumber + "_bar.png");
+            insertInvPs.setString(8, pdfPath);
+            insertInvPs.setString(9, qrPath);
+            insertInvPs.setString(10, barPath);
             insertInvPs.executeUpdate();
             
             int newInvoiceId = -1;
@@ -344,6 +343,12 @@ public class GenerateInvoiceServlet extends HttpServlet {
 
     private void streamPdf(String pdfPath, HttpServletResponse response) throws IOException {
         File pdfFile = new File(pdfPath);
+        // If stored path is not absolute (old relative path), skip — file not on disk
+        if (!pdfFile.isAbsolute() || !pdfFile.exists()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            response.getWriter().write("Invoice PDF not found. Please regenerate by visiting the Bookings tab.");
+            return;
+        }
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "inline; filename=" + pdfFile.getName());
         response.setContentLength((int) pdfFile.length());

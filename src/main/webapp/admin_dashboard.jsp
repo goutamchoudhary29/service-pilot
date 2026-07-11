@@ -13,6 +13,8 @@
     if (activeTab == null) activeTab = "dashboard";
     String successMsg = request.getParameter("success");
     String errorMsg = request.getParameter("error");
+    String csrfToken = (String) sess.getAttribute("csrfToken");
+    if (csrfToken == null) csrfToken = "";
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +22,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Console — ServicePilot</title>
+    <meta name="csrf-token" content="<%= csrfToken %>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
@@ -403,10 +406,11 @@
                     <td>&#8377;<%= String.format("%.2f", irs.getDouble("discount_amount")) %></td>
                     <td><strong>&#8377;<%= String.format("%.2f", irs.getDouble("final_amount")) %></strong></td>
                     <td class="text-muted"><%= irs.getTimestamp("created_at") %></td>
-                    <td>
+                    <td class="d-flex gap-1 flex-wrap">
                         <% if (irs.getString("pdf_path") != null) { %>
                         <a href="<%= irs.getString("pdf_path") %>" class="action-btn btn btn-sm btn-outline-primary" target="_blank"><i class="fas fa-download"></i> PDF</a>
                         <% } %>
+                        <button class="action-btn btn btn-sm btn-outline-success" onclick="openEmailInvoice('<%= irs.getString("invoice_number") %>','<%= irs.getInt("customer_id") %>')"><i class="fas fa-envelope"></i> Email</button>
                     </td>
                 </tr>
                 <% } irs.close(); ips.close();
@@ -683,6 +687,25 @@
     </form>
 </div></div></div>
 
+<!-- Send Invoice Email Modal -->
+<div class="modal fade" id="emailInvoiceModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fas fa-envelope me-2"></i>Email Invoice to Customer</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post" action="SendCustomerEmailServlet">
+        <input type="hidden" name="action" value="emailInvoice">
+        <input type="hidden" name="csrfToken" id="emailInvCsrf" value="<%= csrfToken %>">
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Recipient Email</label><input type="email" class="form-control" name="recipient" id="emailInvRecipient" required></div>
+          <div class="mb-3"><label class="form-label">Subject</label><input type="text" class="form-control" name="subject" id="emailInvSubject" required></div>
+          <div class="mb-3"><label class="form-label">Message</label><textarea class="form-control" name="message" id="emailInvMessage" rows="5" required></textarea></div>
+        </div>
+        <div class="modal-footer"><button type="submit" class="btn btn-auth"><i class="fas fa-paper-plane me-1"></i>Send Email</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Live clock
@@ -766,6 +789,35 @@ if(document.getElementById('sec-dashboard').classList.contains('active')){
         if(ahtml==='')ahtml='<p class="text-muted small">No recent activity.</p>';
         document.getElementById('activityFeed').innerHTML=ahtml;
     }).catch(e=>console.error('Dashboard data error:',e));
+}
+
+// ── Auto-inject CSRF token into ALL POST forms ──
+(function() {
+    var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    document.querySelectorAll('form').forEach(function(form) {
+        if ((form.method || '').toLowerCase() === 'post') {
+            if (!form.querySelector('input[name="csrfToken"]')) {
+                var inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'csrfToken';
+                inp.value = token;
+                form.appendChild(inp);
+            }
+        }
+    });
+})();
+
+// Open Email Invoice modal and pre-fill subject/message
+function openEmailInvoice(invoiceNumber, customerId) {
+    fetch('AdminDashboardDataServlet?action=getCustomerEmail&customerId=' + customerId)
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('emailInvRecipient').value = d.email || '';
+        })
+        .catch(() => {});
+    document.getElementById('emailInvSubject').value = 'Your Invoice ' + invoiceNumber + ' from ServicePilot';
+    document.getElementById('emailInvMessage').value = 'Dear Customer,\n\nPlease find your invoice details:\n\nInvoice Number: ' + invoiceNumber + '\n\nThank you for choosing ServicePilot!\n\nRegards,\nServicePilot Team';
+    new bootstrap.Modal(document.getElementById('emailInvoiceModal')).show();
 }
 </script>
 </body>

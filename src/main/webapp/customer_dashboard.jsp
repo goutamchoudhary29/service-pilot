@@ -55,6 +55,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Panel — ServicePilot</title>
+    <meta name="csrf-token" content="<%= csrfToken != null ? csrfToken : "" %>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
@@ -665,6 +666,28 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    (function() {
+        var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        if (!token) return;
+        document.querySelectorAll('form').forEach(function(form) {
+            if ((form.method || '').toLowerCase() === 'post') {
+                if (!form.querySelector('input[name="csrfToken"]')) {
+                    var inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'csrfToken';
+                    inp.value = token;
+                    form.appendChild(inp);
+                }
+                var action = form.getAttribute('action') || '';
+                if (action && action.indexOf('csrfToken=') === -1) {
+                    var separator = action.indexOf('?') !== -1 ? '&' : '?';
+                    form.setAttribute('action', action + separator + 'csrfToken=' + encodeURIComponent(token));
+                }
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
 <%

@@ -20,8 +20,20 @@ public class SecurityFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // 1. Prevent Browser Caching on Sensitive Secured Pages (Dashboard, Settings, Catalog actions)
+        // Ensure session has a CSRF token for all JSP/Servlet pages
         String path = httpRequest.getRequestURI();
+        boolean isStatic = path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".png") || 
+                           path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".gif") || 
+                           path.endsWith(".svg") || path.endsWith(".ico") || path.contains("/css/") || 
+                           path.contains("/images/");
+        if (!isStatic) {
+            javax.servlet.http.HttpSession session = httpRequest.getSession(true);
+            if (session.getAttribute("csrfToken") == null) {
+                SecurityUtil.generateCSRFToken(session);
+            }
+        }
+
+        // 1. Prevent Browser Caching on Sensitive Secured Pages (Dashboard, Settings, Catalog actions)
         if (path.contains("dashboard.jsp") || path.contains("settings.jsp") || path.contains("booking") || path.contains("Servlet")) {
             httpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             httpResponse.setHeader("Pragma", "no-cache");

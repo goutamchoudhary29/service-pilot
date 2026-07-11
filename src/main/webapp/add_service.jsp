@@ -1,10 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
+<%
+    String csrfToken = (String) session.getAttribute("csrfToken");
+    if (csrfToken == null) csrfToken = "";
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Add New Service</title>
+    <meta name="csrf-token" content="<%= csrfToken %>">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -76,5 +81,27 @@
             }
         %>
     </table>
+    <script>
+    (function() {
+        var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        if (!token) return;
+        document.querySelectorAll('form').forEach(function(form) {
+            if ((form.method || '').toLowerCase() === 'post') {
+                if (!form.querySelector('input[name="csrfToken"]')) {
+                    var inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'csrfToken';
+                    inp.value = token;
+                    form.appendChild(inp);
+                }
+                var action = form.getAttribute('action') || '';
+                if (action && action.indexOf('csrfToken=') === -1) {
+                    var separator = action.indexOf('?') !== -1 ? '&' : '?';
+                    form.setAttribute('action', action + separator + 'csrfToken=' + encodeURIComponent(token));
+                }
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
