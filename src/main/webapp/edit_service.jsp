@@ -1,4 +1,4 @@
-<%@ page import="java.sql.*" %>
+<%@ page import="java.sql.*, com.vehicleservice.util.DBUtil" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page pageEncoding="UTF-8" %>
 <%
@@ -22,8 +22,7 @@
     PreparedStatement ps = null;
     ResultSet rs = null;
     try {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        con = DriverManager.getConnection("jdbc:mysql://localhost:3306/servicepilot", "root", "9926");
+        con = DBUtil.getConnection();
         String query = "SELECT * FROM services WHERE id=?";
         ps = con.prepareStatement(query);
         ps.setString(1, id);

@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*" %>
+<%@ page import="java.sql.*, com.vehicleservice.util.DBUtil" %>
 <%
     String csrfToken = (String) session.getAttribute("csrfToken");
     if (csrfToken == null) csrfToken = "";
@@ -55,8 +55,7 @@
         </tr>
         <%
             try {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/servicepilot", "root", "9926");
+                Connection con = DBUtil.getConnection();
                 Statement stmt = con.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT id, service_name, description, price, time, quality, image_url FROM services");
 

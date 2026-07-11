@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+import com.vehicleservice.util.DBUtil;
 
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
                  maxFileSize = 1024 * 1024 * 10,      // 10MB
@@ -42,8 +43,7 @@ public class AddServiceServlet extends HttpServlet {
             String imageUrl = "uploads/" + fileName;
 
             // Database Connection
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/servicepilot", "root", "9926");
+            Connection conn = DBUtil.getConnection();
 
             String query = "INSERT INTO services (service_name, description, price, time, quality, image_url) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement pstmt = conn.prepareStatement(query);
