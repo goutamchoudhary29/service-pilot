@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xmlns="http://xmlns.jcp.org/xml/ns/javaee" 
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd" 
+         id="WebApp_ID" version="4.0">
+  
+  <display-name>ServicePilot</display-name>
+  
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+  </welcome-file-list>
+
+  <!-- ContactServlet Declaration -->
+  <servlet>
+    <servlet-name>ContactServlet</servlet-name>
+    <servlet-class>com.vehicleservice.controller.ContactServlet</servlet-class>
+  </servlet>
+
+  <!-- ContactServlet Mapping -->
+  <servlet-mapping>
+    <servlet-name>ContactServlet</servlet-name>
+    <url-pattern>/ContactServlet</url-pattern>
+  </servlet-mapping>
+
+  <!-- AddServiceServlet Declaration -->
+  <servlet>
+    <servlet-name>AddServiceServlet</servlet-name>
+    <servlet-class>com.vehicleservice.controller.AddServiceServlet</servlet-class>
+  </servlet>
+
+  <!-- AddServiceServlet Mapping -->
+  <servlet-mapping>
+    <servlet-name>AddServiceServlet</servlet-name>
+    <url-pattern>/AddServiceServlet</url-pattern>
+  </servlet-mapping>
+
+</web-app>
